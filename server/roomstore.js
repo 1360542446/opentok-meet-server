@@ -11,45 +11,29 @@ module.exports = function (redis, ot) {
         getRoom: function (room, callback) {
             console.log('getRoom: ' + room);
             // Lookup the mapping of rooms to sessionIds
-            redis.hget('rooms', room, function (err, sessionId) {
-                if (!sessionId) {
+            redis.hget('rooms', room, function (err, data) {
+                if (!data) {
                     callback({'message': `${room} not exits`})
                 } else {
-                    callback(null, sessionId);
+                    callback(null, data);
                 }
             });
         },
-        createRoom: function (room, callback) {
-            redis.hget('rooms', room, function (err, sessionId) {
+        createRoom: function (roomInfo, callback) {
+            redis.hget('rooms', roomInfo.room, function (err) {
                 // not found
-                if (err) {
-                    var props = {
-                        mediaMode: 'routed'
-                    };
-                    if (roomStore.isP2P(room)) {
-                        props.mediaMode = 'relayed';
-                    }
-                    var otSDK = ot;
-                    // Create the session
-                    otSDK.createSession(props, function (err, session) {
+                if (!err) {
+                    redis.hset('rooms', roomInfo.room, JSON.stringify(roomInfo), function (err) {
                         if (err) {
+                            console.error('Failed to set room', err);
                             callback(err);
                         } else {
-                            var sessionId = session.sessionId;
-                            // Store the room to sessionId mapping
-                            redis.hset('rooms', room, sessionId, function (err) {
-                                if (err) {
-                                    console.error('Failed to set room', err);
-                                    callback(err);
-                                } else {
-                                    callback(null, sessionId);
-                                }
-                            });
+                            callback(null, roomInfo);
                         }
                     });
                 }
                 else{
-                    callback({'message': `room ${room} exits already`});
+                    callback({'message': `room created failed as ${err}`});
                 }
             });
         }
