@@ -1,1 +1,26 @@
-[]
+[
+    {
+        "name": "room1",
+        "sessionId": "2_MX40NjAzODE5Mn5-MTUxNzE0NzUyNzI1N35LdzF2Q25rMitRR29CSGRrQTM0c2MxdTR-fg",
+        "apiKey": "46038192",
+        "p2p": false,
+        "createTime": "Sun, 28 Jan 2018 13:52:07 GMT",
+        "tokens": [
+            {
+                "role": "publisher",
+                "expireTime": "Sun, 18 Jan 1970 13:35:52 GMT",
+                "token": "T1==cGFydG5lcl9pZD00NjAzODE5MiZzaWc9MDkxMDM2OGQ1YTBjYjQzMDRlMWM3MjUyYTA3ZmUyZDkwNTlmMDUwYzpzZXNzaW9uX2lkPTJfTVg0ME5qQXpPREU1TW41LU1UVXhOekUwTnpVeU56STFOMzVMZHpGMlEyNXJNaXRSUjI5Q1NHUnJRVE0wYzJNeGRUUi1mZyZjcmVhdGVfdGltZT0xNTE3MTQ3OTUzJm5vbmNlPTAuMDI3NDMxNDk0ODU4MzQ5NjE0JnJvbGU9cHVibGlzaGVyJmV4cGlyZV90aW1lPTE1MTc3NTI3NTMmaW5pdGlhbF9sYXlvdXRfY2xhc3NfbGlzdD0="
+            },
+            {
+                "role": "publisher",
+                "expireTime": "Sun, 04 Feb 2018 14:00:51 GMT",
+                "token": "T1==cGFydG5lcl9pZD00NjAzODE5MiZzaWc9MDUxYzJhZTJiMTRhNjY2Y2FkMTVkMzJkZmMyYWJkMDgwYzljNTFmYTpzZXNzaW9uX2lkPTJfTVg0ME5qQXpPREU1TW41LU1UVXhOekUwTnpVeU56STFOMzVMZHpGMlEyNXJNaXRSUjI5Q1NHUnJRVE0wYzJNeGRUUi1mZyZjcmVhdGVfdGltZT0xNTE3MTQ4MDUxJm5vbmNlPTAuMjE3MzE5NDAxMTU1MDA0Mzcmcm9sZT1wdWJsaXNoZXImZXhwaXJlX3RpbWU9MTUxNzc1Mjg1MSZpbml0aWFsX2xheW91dF9jbGFzc19saXN0PQ=="
+            },
+            {
+                "role": "publisher",
+                "expireTime": "Mon, 29 Jan 2018 14:01:39 GMT",
+                "token": "T1==cGFydG5lcl9pZD00NjAzODE5MiZzaWc9ZWYxNzM5Y2JkNzA3YjAwMDBmOGU3ZjU5NzVhMTBiYjJkOGY0NTc3YjpzZXNzaW9uX2lkPTJfTVg0ME5qQXpPREU1TW41LU1UVXhOekUwTnpVeU56STFOMzVMZHpGMlEyNXJNaXRSUjI5Q1NHUnJRVE0wYzJNeGRUUi1mZyZjcmVhdGVfdGltZT0xNTE3MTQ4MTAyJm5vbmNlPTAuNDE4ODQ3ODAyMjUzODQwOSZyb2xlPXB1Ymxpc2hlciZleHBpcmVfdGltZT0xNTE3MjM0NTAwJmluaXRpYWxfbGF5b3V0X2NsYXNzX2xpc3Q9"
+            }
+        ]
+    }
+]
