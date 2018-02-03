@@ -36,7 +36,7 @@ module.exports = function (app, config, ot, redirectSSL) {
         var room = req.param('room');
         RoomStore.getRoom(room, function (err, data) {
             if (data) {
-                res.json({ 'message': `room ${room} exits already` });
+                res.status(400).send({ 'message': `room ${room} exits already` });
                 return;
             }
             var props = {
@@ -60,7 +60,7 @@ module.exports = function (app, config, ot, redirectSSL) {
                         tokens: []
                     }
                     // Store the room to sessionId mapping
-                    RoomStore.createRoom(roomInfo, function (err, roomInfo) {
+                    RoomStore.createRoom(roomInfo, function (err, room) {
                         if (err) {
                             console.error('Error creating room: ', err);
                             res.status(403).send({
@@ -77,6 +77,7 @@ module.exports = function (app, config, ot, redirectSSL) {
 
     // generate a new token for a room
     roomRoutes.get('/generateToken', function (req, res) {
+        var user = req.param('user');
         var room = req.param('room');
         var expireTime = req.param('expire');
         RoomStore.getRoom(room, function (err, roomInfo) {
@@ -97,10 +98,11 @@ module.exports = function (app, config, ot, redirectSSL) {
                     expireTime: defaultExpireTime
                 }
                 var token = ot.generateToken(roomInfo.sessionId, newTokenOption);
-                var newToken = Object.assign({}, newTokenOption, {token});
+                var newToken = Object.assign({}, newTokenOption, { token });
                 newToken.expireTime = new Date(newToken.expireTime * 1000).toUTCString();
-                
-                RoomStore.addToken(room, newToken, (err)=>{
+                newToken.user = user || '';
+
+                RoomStore.addToken(room, newToken, (err) => {
                     if (err) {
                         console.error('Error creating token: ', err);
                         res.status(403).send({
