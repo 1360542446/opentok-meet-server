@@ -5,19 +5,69 @@ module.exports = function (app, config, ot, redirectSSL) {
     var RoomStore = require('./roomlocalstore.js')(ot);
     var apiRoutes = express.Router();
     var roomRoutes = express.Router();
-    apiRoutes.use('/room', roomRoutes);
-    app.use('/api', apiRoutes);
+    // apiRoutes.use('/room', roomRoutes);
+    // app.use('/api', apiRoutes);
 
-    // Get rooms
-    roomRoutes.get('/', function (req, res) {
+    app.use('/', roomRoutes);
+
+    // // Get room by name
+    // roomRoutes.get('/getroom', getRoom);
+
+    // // Create room
+    // roomRoutes.post('/createroom', createRoom);
+
+    // // generate a new token for a room
+    // roomRoutes.get('/generateToken', generateToken);
+
+
+    let getRooms = function (req, res) {
         RoomStore.getRooms(function (err, rooms) {
             res.send(rooms);
         });
-    });
+    }
 
-    // Get room by name
-    roomRoutes.get('/getroom', function (req, res) {
-        var room = req.param('room');
+    let generateToken = function (req, res) {
+        var user = req.query.user;
+        var room = req.query.room;
+        var expireTime = req.query.expire;
+        RoomStore.getRoom(room, function (err, roomInfo) {
+            if (err) {
+                console.error('Error getting room: ', err);
+                res.status(403).send({
+                    message: err.message
+                });
+            }
+
+            if (roomInfo) {
+                var defaultExpireTime = (new Date().getTime() / 1000) + (7 * 24 * 60 * 60); // in one week
+                if (expireTime) {
+                    defaultExpireTime = (new Date().getTime() / 1000) + (parseInt(expireTime) * 24 * 60 * 60);
+                }
+                var newTokenOption = {
+                    role: 'publisher',
+                    expireTime: defaultExpireTime
+                }
+                var token = ot.generateToken(roomInfo.sessionId, newTokenOption);
+                var newToken = Object.assign({}, newTokenOption, { token });
+                newToken.expireTime = new Date(newToken.expireTime * 1000).toUTCString();
+                newToken.user = user || '';
+
+                RoomStore.addToken(room, newToken, (err) => {
+                    if (err) {
+                        console.error('Error creating token: ', err);
+                        res.status(403).send({
+                            message: err.message
+                        });
+                    } else {
+                        res.json(newToken);
+                    }
+                });
+            }
+        });
+    }
+
+    let getRoom = function (req, res) {
+        var room = req.query.room;
         var callback = function (err, data) {
             if (err) {
                 console.error('Error getting room: ', err);
@@ -29,11 +79,10 @@ module.exports = function (app, config, ot, redirectSSL) {
             }
         };
         RoomStore.getRoom(room, callback);
-    });
+    }
 
-    // Create room
-    roomRoutes.post('/createroom', function (req, res) {
-        var room = req.param('room');
+    let createRoom = function (req, res) {
+        var room = req.query.room;
         RoomStore.getRoom(room, function (err, data) {
             if (data) {
                 res.status(400).send({ 'message': `room ${room} exits already` });
@@ -73,46 +122,25 @@ module.exports = function (app, config, ot, redirectSSL) {
                 }
             });
         });
+    }
+    
+    // Get rooms
+    roomRoutes.get('/', function (req, res) {
+        var command = req.query.command;
+        switch (command) {
+            case 'getall':
+                getRooms(req, res);
+                break;
+            case 'getroom':
+                getRoom(req, res);
+                break;
+            case 'generateToken':
+                generateToken(req, res);
+                break;
+            default:
+                res.status(404).send('no command found');
+        }
     });
 
-    // generate a new token for a room
-    roomRoutes.get('/generateToken', function (req, res) {
-        var user = req.param('user');
-        var room = req.param('room');
-        var expireTime = req.param('expire');
-        RoomStore.getRoom(room, function (err, roomInfo) {
-            if (err) {
-                console.error('Error getting room: ', err);
-                res.status(403).send({
-                    message: err.message
-                });
-            }
-
-            if (roomInfo) {
-                var defaultExpireTime = (new Date().getTime() / 1000) + (7 * 24 * 60 * 60); // in one week
-                if (expireTime) {
-                    defaultExpireTime = (new Date().getTime() / 1000) + (parseInt(expireTime) * 24 * 60 * 60);
-                }
-                var newTokenOption = {
-                    role: 'publisher',
-                    expireTime: defaultExpireTime
-                }
-                var token = ot.generateToken(roomInfo.sessionId, newTokenOption);
-                var newToken = Object.assign({}, newTokenOption, { token });
-                newToken.expireTime = new Date(newToken.expireTime * 1000).toUTCString();
-                newToken.user = user || '';
-
-                RoomStore.addToken(room, newToken, (err) => {
-                    if (err) {
-                        console.error('Error creating token: ', err);
-                        res.status(403).send({
-                            message: err.message
-                        });
-                    } else {
-                        res.json(newToken);
-                    }
-                });
-            }
-        });
-    });
+    roomRoutes.post('/', createRoom);
 };
