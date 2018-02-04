@@ -17,7 +17,7 @@ module.exports = function (app, config, ot, redirectSSL) {
 
     // Get room by name
     roomRoutes.get('/getroom', function (req, res) {
-        var room = req.param('room');
+        var room = req.query.room;
         var callback = function (err, data) {
             if (err) {
                 console.error('Error getting room: ', err);
@@ -33,7 +33,7 @@ module.exports = function (app, config, ot, redirectSSL) {
 
     // Create room
     roomRoutes.post('/createroom', function (req, res) {
-        var room = req.param('room');
+        var room = req.query.room;
         RoomStore.getRoom(room, function (err, data) {
             if (data) {
                 res.status(400).send({ 'message': `room ${room} exits already` });
@@ -77,9 +77,9 @@ module.exports = function (app, config, ot, redirectSSL) {
 
     // generate a new token for a room
     roomRoutes.get('/generateToken', function (req, res) {
-        var user = req.param('user');
-        var room = req.param('room');
-        var expireTime = req.param('expire');
+        var user = req.query.user;
+        var room = req.query.room;
+        var expireTime = req.query.expire;
         RoomStore.getRoom(room, function (err, roomInfo) {
             if (err) {
                 console.error('Error getting room: ', err);
