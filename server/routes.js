@@ -1,8 +1,25 @@
-let OpenTok = require('opentok');
-let express = require('express');
+let OpenTok = require('opentok'),
+    express = require('express'),
+    fs = require('fs');
 
-module.exports = function (app, config, ot, redirectSSL) {
-    var RoomStore = require('./roomlocalstore.js')(ot);
+let otConfig = JSON.parse(fs.readFileSync('./config/opentok-config.json'));
+let ot = new OpenTok(otConfig.apiKey, otConfig.apiSecret);
+let RoomStore = null;
+
+module.exports = function (app, config) {
+    if (config.storage && config.storage[0]) {
+        switch (config.storage[0]) {
+            case "dynamo":
+                RoomStore = require('./dynamostore')();
+                break;
+            case "local":
+                RoomStore = require('./roomlocalstore.js')();
+                break;
+            case "redis":
+                break;
+        }
+    }
+
     var apiRoutes = express.Router();
     var roomRoutes = express.Router();
     apiRoutes.use('/room', roomRoutes);
@@ -11,13 +28,14 @@ module.exports = function (app, config, ot, redirectSSL) {
     // Get rooms
     roomRoutes.get('/', function (req, res) {
         RoomStore.getRooms(function (err, rooms) {
-            res.send(rooms);
+            if (err) res.status(400).send({ message: err.message });
+            else res.json(rooms);
         });
     });
 
     // Get room by name
-    roomRoutes.get('/getroom', function (req, res) {
-        var room = req.query.room;
+    roomRoutes.get('/:room', function (req, res) {
+        var room = req.params.room;
         var callback = function (err, data) {
             if (err) {
                 console.error('Error getting room: ', err);
@@ -31,9 +49,25 @@ module.exports = function (app, config, ot, redirectSSL) {
         RoomStore.getRoom(room, callback);
     });
 
+    // Get room by name
+    roomRoutes.delete('/:room', function (req, res) {
+        var room = req.params.room;
+        var callback = function (err, data) {
+            if (err) {
+                console.error('Error removing room: ', err);
+                res.status(403).send({
+                    message: err.message
+                });
+            } else {
+                res.json(data);
+            }
+        };
+        RoomStore.removeRoom(room, callback);
+    });
+
     // Create room
-    roomRoutes.post('/createroom', function (req, res) {
-        var room = req.query.room;
+    roomRoutes.post('/', function (req, res) {
+        var room = req.body.room;
         RoomStore.getRoom(room, function (err, data) {
             if (data) {
                 res.status(400).send({ 'message': `room ${room} exits already` });
@@ -54,7 +88,7 @@ module.exports = function (app, config, ot, redirectSSL) {
                     var roomInfo = {
                         name: room,
                         sessionId: session.sessionId,
-                        apiKey: config.apiKey,
+                        apiKey: otConfig.apiKey,
                         p2p: RoomStore.isP2P(room),
                         createTime: (new Date).toUTCString(),
                         tokens: []
@@ -76,10 +110,13 @@ module.exports = function (app, config, ot, redirectSSL) {
     });
 
     // generate a new token for a room
-    roomRoutes.get('/generateToken', function (req, res) {
-        var user = req.query.user;
-        var room = req.query.room;
-        var expireTime = req.query.expire;
+    // {
+    //  user:...,
+    //  expireTime: ...
+    //}
+    roomRoutes.post('/:room/generateToken', function (req, res) {
+        var room = req.params.room;
+        var roomRequestBody = req.body;
         RoomStore.getRoom(room, function (err, roomInfo) {
             if (err) {
                 console.error('Error getting room: ', err);
@@ -90,8 +127,8 @@ module.exports = function (app, config, ot, redirectSSL) {
 
             if (roomInfo) {
                 var defaultExpireTime = (new Date().getTime() / 1000) + (7 * 24 * 60 * 60); // in one week
-                if (expireTime) {
-                    defaultExpireTime = (new Date().getTime() / 1000) + (parseInt(expireTime) * 24 * 60 * 60);
+                if (roomRequestBody.expireTime) {
+                    defaultExpireTime = (new Date().getTime() / 1000) + (parseInt(roomRequestBody.expireTime) * 24 * 60 * 60);
                 }
                 var newTokenOption = {
                     role: 'publisher',
@@ -100,7 +137,7 @@ module.exports = function (app, config, ot, redirectSSL) {
                 var token = ot.generateToken(roomInfo.sessionId, newTokenOption);
                 var newToken = Object.assign({}, newTokenOption, { token });
                 newToken.expireTime = new Date(newToken.expireTime * 1000).toUTCString();
-                newToken.user = user || '';
+                newToken.user = roomRequestBody.user || '';
 
                 RoomStore.addToken(room, newToken, (err) => {
                     if (err) {
@@ -109,9 +146,25 @@ module.exports = function (app, config, ot, redirectSSL) {
                             message: err.message
                         });
                     } else {
-                        res.json(newToken);
+                        res.json({ message: 'ok' });
                     }
                 });
+            }
+        });
+    });
+
+    // remove existing token
+    roomRoutes.delete('/:room/token/:token', function (req, res) {
+        var room = req.params.room;
+        var token = req.params.token;
+        RoomStore.removeToken(room, token, function (err, data) {
+            if (err) {
+                console.error('Error removing token: ', err);
+                res.status(403).send({
+                    message: err.message
+                });
+            } else {
+                res.json({ message: 'ok' });
             }
         });
     });
