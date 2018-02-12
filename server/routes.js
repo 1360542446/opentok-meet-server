@@ -59,7 +59,7 @@ module.exports = function (app, config) {
                     message: err.message
                 });
             } else {
-                res.json(data);
+                res.json({ message: 'ok' });
             }
         };
         RoomStore.removeRoom(room, callback);
