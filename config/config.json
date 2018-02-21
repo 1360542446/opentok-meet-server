@@ -1,4 +1,5 @@
 {
     "port": 3000,
-    "storage": ["dynamo", "local", "redis"]
+    "storage": ["dynamo", "local", "redis"],
+    "SecretKey": "idonotknownow"
 }

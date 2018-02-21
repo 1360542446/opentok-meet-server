@@ -19,7 +19,10 @@
     "express": "^4.16.2",
     "fs": "0.0.1-security",
     "glob": "^7.1.2",
+    "jsonwebtoken": "^8.1.1",
     "opentok": "^2.6.1",
+    "passport": "^0.4.0",
+    "passport-jwt": "^3.0.1",
     "path": "^0.12.7"
   }
 }
