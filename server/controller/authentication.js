@@ -1,4 +1,9 @@
 let Bearer = require('jsonwebtoken');
+let passportService = require('../../config/passport'),
+passport = require('passport');
+
+// Middleware
+let requireAuth = passport.authenticate('jwt', { session: false });
 
 module.exports = function (authRoutes, config) {
     generateToken = function (user) {
@@ -7,8 +12,12 @@ module.exports = function (authRoutes, config) {
         })
     }
 
+    authRoutes.get('/health', requireAuth, function(req, res){
+        res.status(200).json({message: 'ok'});
+    });
+
     authRoutes.post('/login', function (req, res) {
-        if (req.body.email === 'admin@myenglishtutor.com' && req.body.password === 'admin888') {
+        if (req.body.email === 'admin@myenglishtutor.eu' && req.body.password === 'E3*9j3@8uG01') {
             let userInfo = { email: req.body.email };
             res.status(200).json({
                 token: 'Bearer ' + generateToken(userInfo),

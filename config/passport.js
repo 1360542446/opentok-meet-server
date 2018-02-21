@@ -8,7 +8,7 @@ let jwtOptions = {
     secretOrKey: 'idonotknownow'
 }
 let jwtLogin = new JwtStrategy(jwtOptions, function (payload, done) {
-    if (payload.email === 'admin@myenglishtutor.com') {
+    if (payload.email === 'admin@myenglishtutor.eu') {
         done(null, {});
     }
     else {

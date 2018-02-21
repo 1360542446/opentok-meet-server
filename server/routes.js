@@ -1,11 +1,7 @@
 let OpenTok = require('opentok'),
     express = require('express'),
     passportService = require('../config/passport'),
-    passport = require('passport'),
-    fs = require('fs');
-
-let otConfig = JSON.parse(fs.readFileSync('./config/opentok-config.json'));
-let ot = new OpenTok(otConfig.apiKey, otConfig.apiSecret);
+    passport = require('passport');
 
 // Middleware
 let requireAuth = passport.authenticate('jwt', { session: false });
