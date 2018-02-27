@@ -17,6 +17,10 @@ module.exports = function (app, config) {
     var roomRoutes = express.Router();
     apiRoutes.use('/room', requireAuth, roomRoutes);
 
+    var userRoutes = express.Router();
+    apiRoutes.use('/user', userRoutes);
+
     require('./controller/authentication')(authRoutes, config);
     require('./controller/room')(roomRoutes, config);
+    require('./controller/user')(userRoutes, config);
 };
