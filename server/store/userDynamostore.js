@@ -5,11 +5,11 @@ const docClient = new AWS.DynamoDB.DocumentClient({ apiVersion: '2012-08-10' });
 const TableName = 'User';
 
 module.exports = function () {
-    var roomStore = {
-        isP2P: function (room) {
-            return room.toLowerCase().indexOf('p2p') >= 0;
+    var userStore = {
+        isP2P: function (user) {
+            return user.toLowerCase().indexOf('p2p') >= 0;
         },
-        getRooms: function (callback) {
+        getUsers: function (callback) {
             docClient.scan({ TableName }, function (err, data) {
                 if (err) callback(err, null);
                 else {
@@ -17,74 +17,73 @@ module.exports = function () {
                 }
             });
         },
-        getRoom: function (room, callback) {
-            console.log('getRoom: ' + room);
+        getUser: function (userName, callback) {
             var params = {
                 TableName,
-                Key: { 'name': room }
+                Key: { 'userName': userName }
             };
             docClient.get(params, function (err, data) {
                 if (err) callback(err, null);
                 else if (Object.keys(data).length === 0) {
-                    callback({ 'message': `${room} not exits` }, null);
+                    callback({ 'message': `${userName} not exits` }, null);
                 }
                 else {
                     callback(null, data.Item);
                 }
             })
         },
-        createRoom: function (roomInfo, callback) {
+        createUser: function (userInfo, callback) {
             var params = {
                 TableName,
-                Item: roomInfo
+                Item: userInfo
             };
 
             docClient.put(params, function (err, data) {
                 if (err) {
-                    callback({ 'message': `room created failed as ${err}` });
+                    callback({ 'message': `user created failed as ${err}` });
                 } else {
                     callback(null);
                 }
             });
         },
-        removeRoom: function (room, callback) {
-            console.log('remove room: ' + room);
+        removeUser: function (user, callback) {
+            console.log('remove user: ' + user);
             var params = {
                 TableName,
-                Key: { 'name': room }
+                Key: { 'userName': user }
             };
 
             docClient.delete(params, function (err, data) {
                 if (err) {
-                    callback({ 'message': `room created failed as ${err}` });
+                    callback({ 'message': `user created failed as ${err}` });
                 } else {
                     callback(null);
                 }
             });
         },
-        addToken: function (room, tokenInfo, callback) {
+        addToken: function (user, tokenInfo, callback) {
             var that = this;
-            this.getRoom(room, (err, data) => {
+            this.getUser(user, (err, data) => {
                 if (err) callback({ 'message': `token created failed as ${err}` });
                 else {
                     data.tokens.push(tokenInfo);
-                    that.createRoom(data, callback);
+                    that.createUser(data, callback);
                 }
             });
         },
-        removeToken: function (room, token, callback) {
+        removeToken: function (user, token, callback) {
             var that = this;
-            this.getRoom(room, (err, data) => {
+            this.getUser(user, (err, data) => {
                 if (err) callback({ 'message': `token remove failed as ${err}` });
                 else {
                     var tokenInstance = data.tokens.find((t) => t.token.indexOf(token) > 0);
-                    if(tokenInstance){
+                    if (tokenInstance) {
                         data.tokens.splice(data.tokens.indexOf(tokenInstance), 1);
-                        that.createRoom(data, callback);
+                        that.createUser(data, callback);
                     }
                 }
             });
         },
     };
-    return roomStore;
+    return userStore;
 };
