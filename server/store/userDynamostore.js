@@ -6,9 +6,6 @@ const TableName = 'User';
 
 module.exports = function () {
     var userStore = {
-        isP2P: function (user) {
-            return user.toLowerCase().indexOf('p2p') >= 0;
-        },
         getUsers: function (callback) {
             docClient.scan({ TableName }, function (err, data) {
                 if (err) callback(err, null);

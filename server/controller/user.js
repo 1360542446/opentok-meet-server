@@ -46,7 +46,7 @@ module.exports = function (userRoutes, config) {
         UserStore.removeUser(userName, callback);
     });
 
-    // Create user
+    // Create user item.
     userRoutes.post('/', function (req, res) {
         var userName = req.body.userName;
         // console.log(userName)
@@ -55,38 +55,24 @@ module.exports = function (userRoutes, config) {
                 res.status(400).send({ 'message': `userName ${userName} exits already` });
                 return;
             }
-            var props = {
-                mediaMode: 'routed'
-            };
-            if (UserStore.isP2P(userName)) {
-                props.mediaMode = 'relayed';
-            }
 
             // Create the session
-            ot.createSession(props, function (err, session) {
+
+            var userInfo = {
+                userName: userName
+            }
+            // Store the user to sessionId mapping
+            UserStore.createUser(userInfo, function (err, userName) {
                 if (err) {
-                    callback(err);
-                } else {
-                    var userInfo = {
-                        userName: userName,
-                        sessionId: session.sessionId,
-                        apiKey: otConfig.apiKey,
-                        p2p: UserStore.isP2P(user),
-                        createTime: (new Date).toUTCString()
-                    }
-                    // Store the user to sessionId mapping
-                    UserStore.createUser(userInfo, function (err, userName) {
-                        if (err) {
-                            console.error('Error creating user: ', err);
-                            res.status(403).send({
-                                message: err.message
-                            });
-                        } else {
-                            res.json(userInfo);
-                        }
+                    console.error('Error creating user: ', err);
+                    res.status(403).send({
+                        message: err.message
                     });
+                } else {
+                    res.json(userInfo);
                 }
             });
+
         });
     });
 
@@ -95,7 +81,23 @@ module.exports = function (userRoutes, config) {
     //  userName:...,
     //  password: ...
     //}
-    userRoutes.post('/:userName/password', function (req, res) {
-
+    userRoutes.put('/:userName', function (req, res) {
+        var userName = req.params.userName;
+        var password = req.body.password;
+        var newPassword = req.body.newPassword;
+        if (!password || !newPassword) {
+            res.status(400).send({ 'message': `update password failed` });
+            return;
+        }
+        var callback = function (err, data) {
+            if (err) {
+                res.status(400).send({ 'message': `update password failed` });
+                return;
+            }
+            
+            console.log(data);
+        }
+        UserStore.getUser(userName, callback);
+        // console.log(userName, password);
     });
 }   
