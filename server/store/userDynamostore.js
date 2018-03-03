@@ -44,7 +44,6 @@ module.exports = function () {
             });
         },
         removeUser: function (user, callback) {
-            console.log('remove user: ' + user);
             var params = {
                 TableName,
                 Key: { 'userName': user }
@@ -58,29 +57,22 @@ module.exports = function () {
                 }
             });
         },
-        addToken: function (user, tokenInfo, callback) {
-            var that = this;
-            this.getUser(user, (err, data) => {
-                if (err) callback({ 'message': `token created failed as ${err}` });
-                else {
-                    data.tokens.push(tokenInfo);
-                    that.createUser(data, callback);
-                }
+        update: function (user, callback) {
+            var params = {
+                TableName: TableName,
+                Key: {
+                    "userName": user.userName
+                },
+                UpdateExpression: "set password=:p",
+                ExpressionAttributeValues: {
+                    ":p": user.password
+                },
+                ReturnValues: "UPDATED_NEW"
+            };
+            docClient.update(params, (err, data) => {
+                callback(err, data);
             });
-        },
-        removeToken: function (user, token, callback) {
-            var that = this;
-            this.getUser(user, (err, data) => {
-                if (err) callback({ 'message': `token remove failed as ${err}` });
-                else {
-                    var tokenInstance = data.tokens.find((t) => t.token.indexOf(token) > 0);
-                    if (tokenInstance) {
-                        data.tokens.splice(data.tokens.indexOf(tokenInstance), 1);
-                        that.createUser(data, callback);
-                    }
-                }
-            });
-        },
+        }
     };
     return userStore;
 };

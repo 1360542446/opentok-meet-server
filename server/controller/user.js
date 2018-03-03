@@ -49,19 +49,16 @@ module.exports = function (userRoutes, config) {
     // Create user item.
     userRoutes.post('/', function (req, res) {
         var userName = req.body.userName;
-        // console.log(userName)
         UserStore.getUser(userName, function (err, data) {
             if (data) {
                 res.status(400).send({ 'message': `userName ${userName} exits already` });
                 return;
             }
 
-            // Create the session
-
             var userInfo = {
                 userName: userName
             }
-            // Store the user to sessionId mapping
+
             UserStore.createUser(userInfo, function (err, userName) {
                 if (err) {
                     console.error('Error creating user: ', err);
@@ -81,8 +78,8 @@ module.exports = function (userRoutes, config) {
     //  userName:...,
     //  password: ...
     //}
-    userRoutes.put('/:userName', function (req, res) {
-        var userName = req.params.userName;
+    userRoutes.put('/', function (req, res) {
+        var userName = req.body.userName;
         var password = req.body.password;
         var newPassword = req.body.newPassword;
         if (!password || !newPassword) {
@@ -91,13 +88,22 @@ module.exports = function (userRoutes, config) {
         }
         var callback = function (err, data) {
             if (err) {
-                res.status(400).send({ 'message': `update password failed` });
+                res.send({ 'message': `update password failed` });
+                return;
+            } else if (data.password === password) {
+                UserStore.update({ userName: userName, password: newPassword }, function (err, data) {
+                    if (err) {
+                        console.error(err);
+                        res.send({ 'message': `update password failed` });
+                    } else {
+                        res.json(data);
+                    }
+                })
+            } else {
+                res.send({ 'message': `update password failed` });
                 return;
             }
-            
-            console.log(data);
         }
         UserStore.getUser(userName, callback);
-        // console.log(userName, password);
     });
 }   
