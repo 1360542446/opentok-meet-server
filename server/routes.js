@@ -14,6 +14,9 @@ module.exports = function (app, config) {
     var authRoutes = express.Router();
     apiRoutes.use('/auth', authRoutes);
 
+    var authUserRoutes = express.Router();
+    authRoutes.use('/user', authUserRoutes);
+
     var roomRoutes = express.Router();
     apiRoutes.use('/room', requireAuth, roomRoutes);
 
@@ -21,6 +24,7 @@ module.exports = function (app, config) {
     apiRoutes.use('/user', userRoutes);
 
     require('./controller/authentication')(authRoutes, config);
+    require('./controller/authrntivationUser')(authUserRoutes, config);
     require('./controller/room')(roomRoutes, config);
     require('./controller/user')(userRoutes, config);
 };
