@@ -49,6 +49,7 @@ module.exports = function (userRoutes, config) {
     // Create user item.
     userRoutes.post('/', function (req, res) {
         var userName = req.body.userName;
+        var password=req.body.password;
         UserStore.getUser(userName, function (err, data) {
             if (data) {
                 res.status(400).send({ 'message': `userName ${userName} exits already` });
@@ -56,7 +57,8 @@ module.exports = function (userRoutes, config) {
             }
 
             var userInfo = {
-                userName: userName
+                userName: userName,
+                password:password
             }
 
             UserStore.createUser(userInfo, function (err, userName) {

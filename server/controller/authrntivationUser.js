@@ -42,12 +42,9 @@ module.exports = function (authUserRoutes, config) {
                                 if (obj['user'] === userName) {
                                     let userInfo = { username: userName };
                                         res.status(200).json({
-                                            token: 'Bearer ' + generateToken(userInfo),
-                                            username: userInfo,
-                                            room:data['name'],
-                                            apiKey:data['apikey'],
-                                            sessionId:data['sessionId'],
-                                            token:data['token']
+                                            authorization: 'Bearer ' + generateToken(userInfo),
+                                            username: userName,
+                                            room:data['name']
                                         });
                                     return;
                                 }
@@ -63,6 +60,36 @@ module.exports = function (authUserRoutes, config) {
             }
         };
         UserStore.getUser(userName, callback);
-
     });
+
+    authUserRoutes.post('/room',requireAuth,function(req, res){
+        let room=req.body.room;
+        let userName = req.body.username;
+        RoomStore.getRoom(room, function (err, data) {
+            if (err) {
+                console.error('Error getting room: ', err);
+                res.status(403).send({
+                    message: err.message
+                });
+            } else {
+                if (data['tokens'] && data['tokens'].length > 0) {
+                    for (let obj of data['tokens']) {
+                        if (obj['user'] === userName) {
+                            let userInfo = { username: userName };
+                                res.status(200).json({
+                                    room:data['name'],
+                                    apiKey:data['apiKey'],
+                                    sessionId:data['sessionId'],
+                                    token:obj['token']
+                                });
+                            return;
+                        }
+                    }
+                    res.status(403).send({
+                        message: `no room for ${userName}`
+                    });
+                }
+            }
+        })
+    })
 }

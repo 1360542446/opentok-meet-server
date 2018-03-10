@@ -13,7 +13,6 @@ module.exports = function (ot) {
             callback(null, getAllRooms());
         },
         getRoom: function (room, callback) {
-            console.log('getRoom: ' + room);
             let allRooms = getAllRooms();
             let roomInfo = allRooms.find((r) => r.name.toLowerCase() === room.toLowerCase());
 
